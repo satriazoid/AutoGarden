@@ -1,0 +1,31 @@
+name: AutoGarden 🌿
+
+on:
+  schedule:
+    - cron: '0 9 * * *' # Menyiram tanaman setiap jam 9 pagi
+  workflow_dispatch:      # Tombol manual
+
+jobs:
+  cultivate:
+    runs-on: ubuntu-latest
+    
+    # --- BAGIAN PENTING ---
+    permissions:
+      contents: write   # Memberikan izin untuk menulis ke repo
+    # ----------------------
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Update Garden Log
+        run: |
+          echo "Last watered on: $(date)" > garden_log.txt
+
+      - name: Commit & Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add garden_log.txt
+          git commit -m "leaf: watering the garden 💧"
+          git push
