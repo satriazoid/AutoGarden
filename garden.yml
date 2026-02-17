@@ -2,30 +2,33 @@ name: AutoGarden 🌿
 
 on:
   schedule:
-    - cron: '0 9 * * *' # Menyiram tanaman setiap jam 9 pagi
+    - cron: '0 2,11 * * *' # Menjalankan pada jam 09:00 & 18:00 WIB
   workflow_dispatch:      # Tombol manual
 
 jobs:
   cultivate:
     runs-on: ubuntu-latest
     
-    # --- BAGIAN PENTING ---
     permissions:
-      contents: write   # Memberikan izin untuk menulis ke repo
-    # ----------------------
+      contents: write
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Update Garden Log
+      - name: Gardening Loop (10 Times)
         run: |
-          echo "Last watered on: $(date)" > garden_log.txt
+          # Konfigurasi identitas
+          git config --global user.name "Satriazoid"
+          git config --global user.email "satriaalfa77@gmail.com"
 
-      - name: Commit & Push
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add garden_log.txt
-          git commit -m "leaf: watering the garden 💧"
+          # Loop sebanyak 10 kali
+          for i in {1..10}
+          do
+            echo "Watering session $i on: $(date)" >> garden_log.txt
+            git add garden_log.txt
+            git commit -m "leaf: watering the garden $i/10 💧"
+          done
+          
+          # Push semua 10 commit sekaligus ke GitHub
           git push
