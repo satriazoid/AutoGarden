@@ -2,13 +2,13 @@ name: AutoGarden 🌿
 
 on:
   schedule:
-    - cron: '0 2,11 * * *' # Menjalankan pada jam 09:00 & 18:00 WIB
-  workflow_dispatch:      # Tombol manual
+    # Berjalan otomatis setiap 4 jam sekali selamanya
+    - cron: '0 */4 * * *'
+  workflow_dispatch: # Tombol rahasia untuk tes manual
 
 jobs:
   cultivate:
     runs-on: ubuntu-latest
-    
     permissions:
       contents: write
 
@@ -16,19 +16,20 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Gardening Loop (10 Times)
+      - name: Gardening Loop
         run: |
-          # Konfigurasi identitas
-          git config --global user.name "Satriazoid"
+          # Gunakan nama & email Anda agar grafik hijau profil menyala
+          git config --global user.name "satriazoid"
           git config --global user.email "satriaalfa77@gmail.com"
 
-          # Loop sebanyak 10 kali
-          for i in {1..10}
+          # Menjalankan loop 5 kali commit dalam sekali jalan
+          for i in {1..5}
           do
-            echo "Watering session $i on: $(date)" >> garden_log.txt
+            export TZ="Asia/Jakarta"
+            echo "Garden watered at: $(date)" >> garden_log.txt
             git add garden_log.txt
-            git commit -m "leaf: watering the garden $i/10 💧"
+            git commit -m "leaf: watering the garden $i/5 💧"
           done
           
-          # Push semua 10 commit sekaligus ke GitHub
-          git push
+          # Kirim semua 5 commit sekaligus ke GitHub
+          git push origin main
