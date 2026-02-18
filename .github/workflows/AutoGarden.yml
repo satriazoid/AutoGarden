@@ -17,20 +17,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Gardening Loop
-        run: |
-          # Konfigurasi Git
-          git config --global user.name "satriazoid"
-          git config --global user.email "satriaalfa77@gmail.com"
+              run: |
+                # Konfigurasi identitas
+                git config --global user.name "satriazoid"
+                git config --global user.email "satriaalfa77@gmail.com"
 
-          # Menjalankan loop 10 kali commit dalam sekali jalan
-          for i in {1..10}
-          do
-            export TZ="Asia/Jakarta"
-            # Menggunakan '>' untuk menimpa file agar log lama terhapus
-            echo "Garden watered at: $(date)" > garden_log.txt
-            git add garden_log.txt
-            git commit -m "leaf: watering the garden $i/10 💧"
-          done
-          
-          # Kirim semua 10 commit sekaligus ke GitHub
-          git push origin main
+                # SOLUSI: Paksa sinkronisasi dengan remote untuk menghapus sisa merge yang error
+                git fetch origin main
+                git reset --hard origin/main
+
+                # Menjalankan loop 10 kali
+                for i in {1..10}
+                do
+                  export TZ="Asia/Jakarta"
+                  # Menggunakan '>' untuk menimpa file (hapus log lama)
+                  echo "Garden watered at: $(date)" > garden_log.txt
+                  git add garden_log.txt
+                  git commit -m "leaf: watering the garden $i/10 💧"
+                done
+                
+                # Kirim perubahan
+                git push origin main --force
