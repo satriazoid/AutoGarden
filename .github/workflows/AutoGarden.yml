@@ -18,23 +18,30 @@ jobs:
 
       - name: Gardening Loop
         run: |
-          # Konfigurasi identitas
+          # 1. Konfigurasi identitas agar grafik GitHub menyala
           git config --global user.name "satriazoid"
           git config --global user.email "satriaalfa77@gmail.com"
 
-          # SOLUSI: Paksa sinkronisasi dengan remote
+          # 2. Paksa sinkronisasi dengan remote (Anti-Error Merge)
           git fetch origin main
           git reset --hard origin/main
 
-          # Menjalankan loop 10 kali
+          # 3. Menjalankan loop 10 kali
           for i in {1..10}
           do
             export TZ="Asia/Jakarta"
-            # Menggunakan '>' untuk menimpa file (hapus log lama)
+            
+            # Memberi jeda 1 detik agar timestamp selalu berubah
+            sleep 1
+            
+            # Menggunakan '>' untuk menimpa file (menghapus log lama)
             echo "Garden watered at: $(date)" > garden_log.txt
+            
             git add garden_log.txt
-            git commit -m "leaf: watering the garden $i/10 💧"
+            
+            # Menggunakan --allow-empty agar tidak error jika file dianggap sama
+            git commit --allow-empty -m "leaf: watering the garden $i/10 💧"
           done
           
-          # Kirim perubahan
+          # 4. Kirim semua perubahan sekaligus secara paksa
           git push origin main --force
