@@ -2,9 +2,9 @@ name: AutoGarden 🌿
 
 on:
   schedule:
-    # Berjalan otomatis setiap 12 jam sekali
-    - cron: '0 */12 * * *'
-  workflow_dispatch: # Tombol rahasia untuk tes manual
+    # 3 sesi: pagi (06), siang (14), malam (22)
+    - cron: '0 6,14,22 * * *'
+  workflow_dispatch:
 
 jobs:
   cultivate:
@@ -18,30 +18,34 @@ jobs:
 
       - name: Gardening Loop
         run: |
-          # 1. Konfigurasi identitas agar grafik GitHub menyala
           git config --global user.name "satriazoid"
           git config --global user.email "satriaalfa77@gmail.com"
 
-          # 2. Paksa sinkronisasi dengan remote (Anti-Error Merge)
           git fetch origin main
           git reset --hard origin/main
 
-          # 3. Menjalankan loop 10 kali
-          for i in {1..10}
+          export TZ="Asia/Jakarta"
+
+          # Tentukan sesi berdasarkan jam
+          HOUR=$(date +%H)
+
+          if [ "$HOUR" -lt 12 ]; then
+            SESSION="🌅 Morning Session"
+          elif [ "$HOUR" -lt 18 ]; then
+            SESSION="☀️ Afternoon Session"
+          else
+            SESSION="🌙 Night Session"
+          fi
+
+          # Loop hanya 5 commit per sesi
+          for i in {1..5}
           do
-            export TZ="Asia/Jakarta"
-            
-            # Memberi jeda 1 detik agar timestamp selalu berubah
             sleep 1
-            
-            # Menggunakan '>' untuk menimpa file (menghapus log lama)
-            echo "Garden watered at: $(date)" > garden_log.txt
+
+            echo "Garden watered at: $(date) - $SESSION" > garden_log.txt
             
             git add garden_log.txt
-            
-            # Menggunakan --allow-empty agar tidak error jika file dianggap sama
-            git commit --allow-empty -m "leaf: watering the garden $i/10 💧"
+            git commit --allow-empty -m "leaf: $SESSION $i/5 💧"
           done
-          
-          # 4. Kirim semua perubahan sekaligus secara paksa
+
           git push origin main --force
