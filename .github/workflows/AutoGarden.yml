@@ -18,8 +18,7 @@ jobs:
 
       - name: Gardening Loop
         run: |
-          git config --global user.name "satriazoid"
-          git config --global user.email "satriaalfa77@gmail.com"
+          git config --global user.email "12345678+satriazoid@users.noreply.github.com"
 
           git fetch origin main
           git reset --hard origin/main
