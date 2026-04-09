@@ -18,60 +18,102 @@ jobs:
 
       - name: Gardening Loop
         run: |
-            git config --global user.name "satriazoid"
-            git config --global user.email "satriaalfa77@gmail.com"
-            
-            git fetch origin main
-            git reset --hard origin/main
-        
-            export TZ="Asia/Jakarta"
-            HOUR=$(date +%H)
-            
-            # 🎯 1. Jam Operasional Manusia (07:00 - 23:00)
-            # Di luar jam ini, kemungkinan aktif hanya 5% (biar ada lembur sesekali)
-            if [ "$HOUR" -lt 7 ] || [ "$HOUR" -gt 23 ]; then
-              LATE_NIGHT=$(( RANDOM % 100 ))
-              if [ "$LATE_NIGHT" -gt 5 ]; then
-                echo "Sleeping time... 😴"
-                exit 0
-              fi
-            fi
+          git config --global user.name "satriazoid"
+          git config --global user.email "satriaalfa77@gmail.com"
 
-            # 🎯 2. Probabilitas Per Sesi (Total target ~7-10 commit/hari)
-            # Karena script jalan tiap 2 jam, kita buat probabilitas aktif 70% 
-            # agar target mingguan >50 aman tercapai.
-            ACTIVE_CHECK=$(( RANDOM % 100 ))
-            if [ "$ACTIVE_CHECK" -gt 70 ]; then
-              echo "Taking a short break ☕"
+          git fetch origin main
+          git reset --hard origin/main
+
+          export TZ="Asia/Jakarta"
+          HOUR=$(date +%H)
+          DAY=$(date +%u) # 1=Senin ... 7=Minggu
+
+          # =========================
+          # 🎯 1. Target Harian
+          # =========================
+          case $DAY in
+            1) TARGET=12 ;; # Senin
+            2) TARGET=14 ;; # Selasa
+            3) TARGET=15 ;; # Rabu
+            4) TARGET=17 ;; # Kamis
+            5) TARGET=20 ;; # Jumat (paling aktif)
+            6) TARGET=12 ;; # Sabtu (santai)
+            7) TARGET=10 ;; # Minggu (minimal)
+          esac
+
+          echo "Today target commits: $TARGET"
+
+          # =========================
+          # 🎯 2. Hitung commit hari ini
+          # =========================
+          TODAY=$(date '+%Y-%m-%d')
+          COUNT=$(git log --since="$TODAY 00:00:00" --until="$TODAY 23:59:59" --pretty=oneline | wc -l)
+
+          echo "Current commits today: $COUNT"
+
+          if [ "$COUNT" -ge "$TARGET" ]; then
+            echo "Target reached. Resting 🌙"
+            exit 0
+          fi
+
+          REMAIN=$(( TARGET - COUNT ))
+
+          # =========================
+          # 🎯 3. Jam manusia
+          # =========================
+          if [ "$HOUR" -lt 7 ] || [ "$HOUR" -gt 23 ]; then
+            NIGHT_CHANCE=$(( RANDOM % 100 ))
+            if [ "$NIGHT_CHANCE" -gt 30 ]; then
+              echo "Sleeping time 😴"
               exit 0
             fi
+          fi
 
-            # 🎯 3. Penentuan Jumlah Commit per Sesi
-            # Kita gunakan rentang kecil agar total harian terakumulasi natural
-            ROLL=$(( RANDOM % 100 ))
-            if [ "$ROLL" -lt 60 ]; then
-              ITERATIONS=$(( ( RANDOM % 2 ) + 1 ))   # 1-2 commit (rutin)
-            elif [ "$ROLL" -lt 90 ]; then
-              ITERATIONS=$(( ( RANDOM % 3 ) + 2 ))   # 2-4 commit (aktif)
-            else
-              ITERATIONS=5                           # Sprint kecil
-            fi
+          # =========================
+          # 🎯 4. Commit per sesi (adaptif)
+          # =========================
+          if [ "$REMAIN" -le 2 ]; then
+            ITERATIONS=1
+          elif [ "$REMAIN" -le 5 ]; then
+            ITERATIONS=$(( ( RANDOM % 2 ) + 1 )) # 1-2
+          else
+            ITERATIONS=$(( ( RANDOM % 3 ) + 2 )) # 2-4
+          fi
 
-            echo "Current Hour: $HOUR | Commits this session: $ITERATIONS"
-        
-            for ((i=1; i<=ITERATIONS; i++))
-            do
-              # Random delay antara commit (1-120 detik) agar timestamp tidak dempet
-              sleep $(( ( RANDOM % 120 ) + 1 ))
+          # Jangan over commit
+          if [ "$ITERATIONS" -gt "$REMAIN" ]; then
+            ITERATIONS=$REMAIN
+          fi
 
-              echo "Growth log: $(date '+%Y-%m-%d %H:%M:%S') - Step $i" > garden_log.txt
-              
-              git add garden_log.txt
-              # Menggunakan pesan commit yang bervariasi agar tidak terlihat spam
-              MESSAGES=("feat: update garden logic 🌿" "fix: pruning dead leaves ✂️" "docs: water plants 💧" "chore: soil maintenance 🌱" "refactor: sun exposure optimization ☀️")
-              SELECTED_MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
-              
-              git commit -m "$SELECTED_MSG"
-            done
+          echo "Hour: $HOUR | Remaining: $REMAIN | This session: $ITERATIONS"
 
-            git push origin main
+          # =========================
+          # 🎯 5. Loop commit
+          # =========================
+          for ((i=1; i<=ITERATIONS; i++))
+          do
+            sleep $(( ( RANDOM % 90 ) + 30 )) # 30–120 detik
+
+            echo "Growth log: $(date '+%Y-%m-%d %H:%M:%S') - Step $i - $RANDOM" > garden_log.txt
+
+            git add garden_log.txt
+
+            MESSAGES=(
+              "feat: update garden logic 🌿"
+              "fix: pruning dead leaves ✂️"
+              "docs: water plants 💧"
+              "chore: soil maintenance 🌱"
+              "refactor: sun exposure optimization ☀️"
+              "style: adjust plant spacing 🌾"
+              "perf: improve growth speed 🚀"
+            )
+
+            MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
+
+            git commit -m "$MSG"
+          done
+
+          # =========================
+          # 🎯 6. Push aman
+          # =========================
+          git push origin main || (git pull --rebase origin main && git push origin main)
