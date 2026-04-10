@@ -18,10 +18,12 @@ jobs:
 
       - name: Auto Gardening System
         run: |
-          git config --global user.name "satriazoid"
-          git config --global user.email "satriazoid@users.noreply.github.com"
+          git config user.name "satriazoid"
+          git config user.email "satriazoid@users.noreply.github.com"
 
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
+
+          git config --list
 
           git fetch origin main
           git reset --hard origin/main
