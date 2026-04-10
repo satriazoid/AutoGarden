@@ -2,13 +2,13 @@ name: AutoGarden 🌿
 
 on:
   schedule:
-    # Berjalan setiap 2 jam agar tidak terlalu "robotik" setiap jam tepat
     - cron: '0 */2 * * *'
   workflow_dispatch:
 
 jobs:
   cultivate:
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
 
@@ -16,9 +16,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Gardening Loop
+      - name: Auto Gardening System
         run: |
-          git config --global user.email "12345678+satriazoid@users.noreply.github.com"
+          git config --global user.name "satriazoid"
+          git config --global user.email "satriazoid@users.noreply.github.com"
+
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
 
           git fetch origin main
           git reset --hard origin/main
@@ -28,37 +31,37 @@ jobs:
           DAY=$(date +%u) # 1=Senin ... 7=Minggu
 
           # =========================
-          # 🎯 1. Target Harian
+          # 🎯 TARGET HARIAN (MIN 10)
           # =========================
           case $DAY in
-            1) TARGET=12 ;; # Senin
-            2) TARGET=14 ;; # Selasa
-            3) TARGET=15 ;; # Rabu
-            4) TARGET=17 ;; # Kamis
-            5) TARGET=20 ;; # Jumat (paling aktif)
-            6) TARGET=12 ;; # Sabtu (santai)
-            7) TARGET=10 ;; # Minggu (minimal)
+            1) TARGET=12 ;;
+            2) TARGET=14 ;;
+            3) TARGET=15 ;;
+            4) TARGET=17 ;;
+            5) TARGET=20 ;;
+            6) TARGET=12 ;;
+            7) TARGET=10 ;;
           esac
 
-          echo "Today target commits: $TARGET"
+          echo "Target today: $TARGET"
 
           # =========================
-          # 🎯 2. Hitung commit hari ini
+          # 📊 HITUNG COMMIT HARI INI
           # =========================
           TODAY=$(date '+%Y-%m-%d')
           COUNT=$(git log --since="$TODAY 00:00:00" --until="$TODAY 23:59:59" --pretty=oneline | wc -l)
 
-          echo "Current commits today: $COUNT"
+          echo "Current commits: $COUNT"
 
           if [ "$COUNT" -ge "$TARGET" ]; then
-            echo "Target reached. Resting 🌙"
+            echo "Target reached, resting 🌙"
             exit 0
           fi
 
           REMAIN=$(( TARGET - COUNT ))
 
           # =========================
-          # 🎯 3. Jam manusia
+          # 🕒 JAM MANUSIA
           # =========================
           if [ "$HOUR" -lt 7 ] || [ "$HOUR" -gt 23 ]; then
             NIGHT_CHANCE=$(( RANDOM % 100 ))
@@ -69,17 +72,17 @@ jobs:
           fi
 
           # =========================
-          # 🎯 4. Commit per sesi (adaptif)
+          # 🔁 JUMLAH COMMIT SESI
           # =========================
           if [ "$REMAIN" -le 2 ]; then
             ITERATIONS=1
           elif [ "$REMAIN" -le 5 ]; then
-            ITERATIONS=$(( ( RANDOM % 2 ) + 1 )) # 1-2
+            ITERATIONS=$(( ( RANDOM % 2 ) + 1 ))
           else
-            ITERATIONS=$(( ( RANDOM % 3 ) + 2 )) # 2-4
+            ITERATIONS=$(( ( RANDOM % 3 ) + 2 ))
           fi
 
-          # Jangan over commit
+          # Jangan lebih dari sisa target
           if [ "$ITERATIONS" -gt "$REMAIN" ]; then
             ITERATIONS=$REMAIN
           fi
@@ -87,11 +90,11 @@ jobs:
           echo "Hour: $HOUR | Remaining: $REMAIN | This session: $ITERATIONS"
 
           # =========================
-          # 🎯 5. Loop commit
+          # 🌱 LOOP COMMIT
           # =========================
           for ((i=1; i<=ITERATIONS; i++))
           do
-            sleep $(( ( RANDOM % 90 ) + 30 )) # 30–120 detik
+            sleep $(( ( RANDOM % 90 ) + 30 ))
 
             echo "Growth log: $(date '+%Y-%m-%d %H:%M:%S') - Step $i - $RANDOM" > garden_log.txt
 
@@ -109,10 +112,14 @@ jobs:
 
             MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
 
-            git commit -m "$MSG"
+            # commit hanya jika ada perubahan
+            if ! git diff --cached --quiet; then
+              git commit -m "$MSG"
+            fi
           done
 
           # =========================
-          # 🎯 6. Push aman
+          # 🚀 PUSH AMAN (ANTI ERROR 128)
           # =========================
-          git push origin main || (git pull --rebase origin main && git push origin main)
+          git pull --rebase origin main
+          git push origin main
