@@ -32,23 +32,20 @@ jobs:
           HOUR=$(date +%H)
           DAY=$(date +%u) # 1=Senin ... 7=Minggu
 
-          # =========================
-          # 🎯 TARGET HARIAN (MIN 10)
-          # =========================
           case $DAY in
-            1) TARGET=12 ;;
-            2) TARGET=14 ;;
-            3) TARGET=15 ;;
-            4) TARGET=17 ;;
-            5) TARGET=20 ;;
-            6) TARGET=12 ;;
-            7) TARGET=10 ;;
+            1) TARGET=10 ;;  # Senin
+            2) TARGET=12 ;;  # Selasa
+            3) TARGET=13 ;;  # Rabu
+            4) TARGET=14 ;;  # Kamis
+            5) TARGET=15 ;;  # Jumat (Maksimal digeser ke 15)
+            6) TARGET=11 ;;  # Sabtu
+            7) TARGET=9  ;;  # Minggu
           esac
 
           echo "Target today: $TARGET"
 
           # =========================
-          # 📊 HITUNG COMMIT HARI INI
+          # HITUNG COMMIT HARI INI
           # =========================
           TODAY=$(date '+%Y-%m-%d')
           COUNT=$(git log --since="$TODAY 00:00:00" --until="$TODAY 23:59:59" --pretty=oneline | wc -l)
@@ -63,7 +60,7 @@ jobs:
           REMAIN=$(( TARGET - COUNT ))
 
           # =========================
-          # 🕒 JAM MANUSIA
+          # JAM MANUSIA
           # =========================
           if [ "$HOUR" -lt 7 ] || [ "$HOUR" -gt 23 ]; then
             NIGHT_CHANCE=$(( RANDOM % 100 ))
@@ -74,7 +71,7 @@ jobs:
           fi
 
           # =========================
-          # 🔁 JUMLAH COMMIT SESI
+          # JUMLAH COMMIT SESI
           # =========================
           if [ "$REMAIN" -le 2 ]; then
             ITERATIONS=1
@@ -92,7 +89,7 @@ jobs:
           echo "Hour: $HOUR | Remaining: $REMAIN | This session: $ITERATIONS"
 
           # =========================
-          # 🌱 LOOP COMMIT
+          # LOOP COMMIT
           # =========================
           for ((i=1; i<=ITERATIONS; i++))
           do
@@ -103,13 +100,13 @@ jobs:
             git add garden_log.txt
 
             MESSAGES=(
-              "feat: update garden logic 🌿"
-              "fix: pruning dead leaves ✂️"
-              "docs: water plants 💧"
-              "chore: soil maintenance 🌱"
-              "refactor: sun exposure optimization ☀️"
-              "style: adjust plant spacing 🌾"
-              "perf: improve growth speed 🚀"
+              "feat: update garden logic"
+              "fix: pruning dead leaves"
+              "docs: water plants"
+              "chore: soil maintenance"
+              "refactor: sun exposure optimization"
+              "style: adjust plant spacing"
+              "perf: improve growth speed"
             )
 
             MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
@@ -121,7 +118,7 @@ jobs:
           done
 
           # =========================
-          # 🚀 PUSH AMAN (ANTI ERROR 128)
+          # PUSH AMAN (ANTI ERROR 128)
           # =========================
           git pull --rebase origin main
           git push origin main
